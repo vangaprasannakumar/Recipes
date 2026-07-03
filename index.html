@@ -3,407 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Recipes</title>
+    <title>Modern Recipes PWA</title>
+    
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff6b6b">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff6b6b/ffffff?text=R">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#ff4757">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff4757/ffffff?text=R">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #ff6b6b;
-            --bg-color: #f8f9fa;
+            --primary: #ff4757;
+            --primary-light: #ff6b81;
+            --bg-color: #f1f2f6;
             --card-bg: #ffffff;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
+            --text-dark: #2f3542;
+            --text-light: #747d8c;
             --glass-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 20px rgba(0,0,0,0.06);
+            --radius: 20px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            overflow-x: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; }
 
         /* --- HEADER & SEARCH --- */
         header {
-            position: sticky;
-            top: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 1rem 1.5rem;
-            z-index: 100;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            position: sticky; top: 0; background: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 1.2rem 1.5rem; z-index: 100;
+            display: flex; flex-direction: column; gap: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.02);
         }
-
-        .header-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-align: center;
-        }
-
-        .search-bar {
-            display: flex;
-            background: var(--card-bg);
-            border-radius: 50px;
-            padding: 0.5rem 1rem;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-        }
-
-        .search-bar input {
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 1rem;
-            background: transparent;
-            padding-left: 10px;
-        }
+        .header-title { font-size: 1.8rem; font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .search-bar { display: flex; background: var(--card-bg); border-radius: 50px; padding: 0.8rem 1.2rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02), 0 2px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s; }
+        .search-bar:focus-within { border-color: var(--primary-light); box-shadow: 0 4px 15px rgba(255, 71, 87, 0.1); }
+        .search-bar input { border: none; outline: none; width: 100%; font-size: 1rem; background: transparent; padding-left: 12px; color: var(--text-dark); }
 
         /* --- HOME VIEW (GRID) --- */
-        #home-view {
-            padding: 1.5rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1.5rem;
-        }
-
-        @media(min-width: 768px) {
-            #home-view {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-        }
+        #home-view { padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; }
+        @media(min-width: 768px) { #home-view { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); } }
 
         .recipe-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-            cursor: pointer;
+            background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; position: relative;
         }
+        .recipe-card:active { transform: scale(0.96); }
+        .recipe-img { width: 100%; height: 160px; object-fit: cover; }
+        .recipe-info { padding: 1rem; }
+        .recipe-title { font-weight: 600; font-size: 1.05rem; margin-bottom: 0.4rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .recipe-time { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 5px; font-weight: 500; }
+        
+        .fav-btn {
+            position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9);
+            width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            border: none; color: #dfe4ea; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(4px); transition: 0.3s; z-index: 10;
+        }
+        .fav-btn.active { color: var(--primary); }
 
-        .recipe-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .recipe-img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .recipe-info {
-            padding: 1rem;
-        }
-
-        .recipe-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .recipe-time {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        /* --- SKELETON LOADER --- */
+        .skeleton { background: #e2e5ec; background: linear-gradient(90deg, #e2e5ec 25%, #f1f2f6 50%, #e2e5ec 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 10px; }
+        .skel-card { height: 260px; border-radius: var(--radius); }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         /* --- RECIPE DETAIL VIEW --- */
-        #recipe-view {
-            background: var(--bg-color);
-            min-height: 100vh;
-            display: none; /* Hidden by default */
+        #recipe-view { background: var(--bg-color); min-height: 100vh; display: none; padding-bottom: 3rem; }
+        
+        .detail-hero {
+            position: relative; width: 100%; height: 300px;
+            background-size: cover; background-position: center;
+            border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+            box-shadow: var(--shadow); overflow: hidden;
         }
+        .detail-hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; color: white; }
+        .hero-title { font-size: 1.6rem; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
+        .hero-meta { font-size: 0.9rem; opacity: 0.9; display: flex; gap: 15px; }
 
-        .back-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            border: none;
-            backdrop-filter: blur(5px);
-        }
+        .back-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.25); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); font-size: 1.2rem; transition: 0.3s; }
+        .back-btn:active { background: rgba(255,255,255,0.4); }
 
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background: #000;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .detail-header {
-            padding: 1.5rem;
-            background: var(--card-bg);
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .detail-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
+        .video-container { width: 90%; margin: -30px auto 20px auto; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; z-index: 5; background: #000; padding-top: 50.62%; /* 16:9 relative to 90% width */ display: none; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
         /* --- TABS --- */
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            margin: 1.5rem;
-            background: #e9ecef;
-            border-radius: 50px;
-            padding: 5px;
-        }
+        .tabs { display: flex; background: rgba(223, 228, 234, 0.5); border-radius: 50px; padding: 5px; margin: 20px 1.5rem; position: relative; }
+        .tab-btn { flex: 1; padding: 0.8rem; border: none; background: transparent; border-radius: 50px; font-weight: 600; font-size: 0.95rem; color: var(--text-light); cursor: pointer; transition: all 0.3s ease; position: relative; z-index: 2; }
+        .tab-btn.active { color: white; }
+        .tab-slider { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); background: var(--primary); border-radius: 50px; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3); z-index: 1; }
 
-        .tab-btn {
-            flex: 1;
-            padding: 0.8rem;
-            border: none;
-            background: transparent;
-            border-radius: 50px;
-            font-weight: 600;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: 0.3s;
-        }
+        .tab-content { display: none; padding: 0 1.5rem; animation: fadeInUp 0.4s ease forwards; }
+        .tab-content.active { display: block; }
 
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
-        }
-
-        .tab-content {
-            display: none;
-            padding: 0 1.5rem 2rem 1.5rem;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-
-        /* --- INGREDIENTS GRID --- */
-        .ingredients-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 1rem;
-        }
-
-        .ingredient-item {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .ingredient-img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 8px;
-            background: #f1f2f6;
-        }
-
-        .ingredient-name {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .ingredient-qty {
-            font-size: 0.75rem;
-            color: var(--primary);
-        }
+        /* --- INGREDIENTS --- */
+        .ingredients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; }
+        .ingredient-item { background: var(--card-bg); border-radius: 15px; padding: 1rem 0.5rem; text-align: center; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.02); }
+        .ingredient-img { width: 70px; height: 70px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .ingredient-name { font-size: 0.85rem; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
+        .ingredient-qty { font-size: 0.75rem; color: var(--primary); font-weight: 500; background: rgba(255, 71, 87, 0.1); padding: 2px 8px; border-radius: 20px; display: inline-block; }
 
         /* --- PROCESS TIMELINE --- */
-        .process-step {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
+        .process-step { display: flex; gap: 1.2rem; margin-bottom: 1.5rem; position: relative; }
+        .process-step::before { content: ''; position: absolute; left: 17px; top: 35px; bottom: -20px; width: 2px; background: #dfe4ea; z-index: 0; }
+        .process-step:last-child::before { display: none; }
+        
+        .step-number { background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; z-index: 1; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); }
+        .step-content { background: var(--card-bg); padding: 1.2rem; border-radius: 15px; width: 100%; box-shadow: var(--shadow); line-height: 1.5; font-size: 0.95rem; border: 1px solid rgba(0,0,0,0.02); }
+        .step-img { width: 100%; border-radius: 10px; margin-top: 12px; display: none; }
 
-        .step-number {
-            background: var(--primary);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
+        /* --- TOAST NOTIFICATION --- */
+        #toast { visibility: hidden; min-width: 250px; background-color: #2f3542; color: #fff; text-align: center; border-radius: 50px; padding: 12px 20px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-        .step-content {
-            background: var(--card-bg);
-            padding: 1rem;
-            border-radius: 15px;
-            width: 100%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .step-img {
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 10px;
-            display: none; /* Hidden if no image provided */
-        }
-
-        /* --- LOADER --- */
-        .loader {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-            font-weight: 600;
-            width: 100%;
-            grid-column: 1 / -1;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
     </style>
 </head>
 <body>
 
     <div id="home-wrapper">
         <header>
-            <div class="header-title">Recipe App</div>
+            <div class="header-title">
+                <span>My Recipes</span>
+                <i class="fas fa-utensils" style="color: var(--text-light); font-size: 1.2rem;"></i>
+            </div>
             <div class="search-bar">
                 <i class="fas fa-search" style="color: var(--text-light); align-self: center;"></i>
-                <input type="text" id="searchInput" placeholder="Search recipes...">
+                <input type="text" id="searchInput" placeholder="What are you craving?">
             </div>
         </header>
         <main id="home-view">
-            <div class="loader" id="loader">Fetching delicious recipes...</div>
-            </main>
+            <div class="skeleton skel-card"></div>
+            <div class="skeleton skel-card"></div>
+            <div class="skeleton skel-card"></div>
+            <div class="skeleton skel-card"></div>
+        </main>
     </div>
 
     <section id="recipe-view">
-        <button class="back-btn" onclick="closeRecipe()">
-            <i class="fas fa-arrow-left"></i>
-        </button>
+        <button class="back-btn" onclick="closeRecipe()"><i class="fas fa-arrow-left"></i></button>
+        
+        <div class="detail-hero" id="detail-hero" style="background-image: url('https://via.placeholder.com/600x400');">
+            <div class="detail-hero-overlay">
+                <h1 class="hero-title" id="detail-title">Recipe Title</h1>
+                <div class="hero-meta">
+                    <span id="detail-time"><i class="far fa-clock"></i> 0 mins</span>
+                    <span id="detail-fav-status" style="display:none;"><i class="fas fa-heart" style="color:var(--primary)"></i> Favorited</span>
+                </div>
+            </div>
+        </div>
 
         <div class="video-container" id="video-container">
             </div>
 
-        <div class="detail-header">
-            <h1 class="detail-title" id="detail-title">Recipe Title</h1>
-            <div class="recipe-time" id="detail-time">
-                <i class="far fa-clock"></i> <span>0 mins</span>
-            </div>
-        </div>
-
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('ingredients')">Ingredients</button>
-            <button class="tab-btn" onclick="switchTab('process')">Process</button>
+            <div class="tab-slider" id="tab-slider"></div>
+            <button class="tab-btn active" id="btn-ingredients" onclick="switchTab('ingredients', 0)">Ingredients</button>
+            <button class="tab-btn" id="btn-process" onclick="switchTab('process', 1)">Process</button>
         </div>
 
         <div id="ingredients" class="tab-content active">
-            <div class="ingredients-grid" id="ingredients-grid">
-                </div>
+            <div class="ingredients-grid" id="ingredients-grid"></div>
         </div>
 
         <div id="process" class="tab-content">
-            <div id="process-list">
-                </div>
+            <div id="process-list"></div>
         </div>
     </section>
+
+    <div id="toast">Message here</div>
 
     <script>
         // --- CONFIGURATION ---
         const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec'; 
         let globalRecipes = [];
+        let favorites = JSON.parse(localStorage.getItem('recipeFavs')) || [];
 
         // --- FETCH DATA ---
         async function fetchRecipes() {
             try {
-                const response = await fetch(API_URL);
-                
-                // Check if the response is valid
-                if (!response.ok) throw new Error("Network response was not ok");
-                
-                const data = await response.json();
-                globalRecipes = data;
-                
-                // Safely hide loader
-                const loader = document.getElementById('loader');
-                if (loader) loader.style.display = 'none';
-                
-                renderHome(globalRecipes);
-            } catch (error) {
-                console.error('Fetch error:', error);
-                
-                // Safely display error
-                const loader = document.getElementById('loader');
-                if (loader) {
-                    loader.innerText = 'Error fetching data. Check your Web App URL and permissions.';
-                } else {
-                    alert("API fetch failed. Check the console for details.");
+                const response = await fetch(API_URL, { redirect: "follow" });
+                const rawText = await response.text();
+                try {
+                    const data = JSON.parse(rawText);
+                    if (data.error) throw new Error(data.error);
+                    globalRecipes = data;
+                    renderHome(globalRecipes);
+                } catch(e) {
+                    throw new Error("Invalid API response. Check URL or permissions.");
                 }
+            } catch (error) {
+                document.getElementById('home-view').innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--primary);"><b>Error:</b> ${error.message}</div>`;
             }
         }
 
         // --- RENDER HOME GRID ---
         function renderHome(recipes) {
             const homeView = document.getElementById('home-view');
-            homeView.innerHTML = ''; // Clear loader or old data
+            homeView.innerHTML = '';
             
             if(recipes.length === 0) {
-                homeView.innerHTML = '<div class="loader">No recipes found.</div>';
+                homeView.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color: var(--text-light); margin-top:2rem;">No recipes found.</div>';
                 return;
             }
 
             recipes.forEach(recipe => {
+                const isFav = favorites.includes(recipe.RecipeID);
+                const thumb = recipe.Thumbnail_URL || 'https://via.placeholder.com/300x200?text=No+Image';
+                
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
-                card.onclick = () => openRecipe(recipe.RecipeID);
+                card.onclick = (e) => {
+                    // Prevent opening recipe if they just clicked the heart
+                    if(e.target.closest('.fav-btn')) return; 
+                    openRecipe(recipe.RecipeID);
+                };
                 
                 card.innerHTML = `
-                    <img src="${recipe.Thumbnail_URL || 'https://via.placeholder.com/300x200?text=No+Image'}" class="recipe-img" alt="${recipe.Title}">
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${recipe.RecipeID}', this)">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <img src="${thumb}" class="recipe-img" loading="lazy" alt="${recipe.Title}">
                     <div class="recipe-info">
                         <div class="recipe-title">${recipe.Title}</div>
                         <div class="recipe-time"><i class="far fa-clock"></i> ${recipe.Prep_Time}</div>
@@ -411,6 +234,20 @@
                 `;
                 homeView.appendChild(card);
             });
+        }
+
+        // --- FAVORITES LOGIC ---
+        function toggleFavorite(id, btnElement) {
+            if(favorites.includes(id)) {
+                favorites = favorites.filter(fav => fav !== id);
+                btnElement.classList.remove('active');
+                showToast("Removed from favorites");
+            } else {
+                favorites.push(id);
+                btnElement.classList.add('active');
+                showToast("Added to favorites ❤️");
+            }
+            localStorage.setItem('recipeFavs', JSON.stringify(favorites));
         }
 
         // --- SEARCH FUNCTIONALITY ---
@@ -425,31 +262,31 @@
             const recipe = globalRecipes.find(r => r.RecipeID === id);
             if (!recipe) return;
 
-            // Hide Home, Show Detail
             document.getElementById('home-wrapper').style.display = 'none';
             document.getElementById('recipe-view').style.display = 'block';
             window.scrollTo(0, 0);
 
-            // Populate Video
+            // Set Hero Header
+            const thumb = recipe.Thumbnail_URL || 'https://via.placeholder.com/600x400?text=Recipe';
+            document.getElementById('detail-hero').style.backgroundImage = `url('${thumb}')`;
+            document.getElementById('detail-title').innerText = recipe.Title;
+            document.getElementById('detail-time').innerHTML = `<i class="far fa-clock"></i> ${recipe.Prep_Time}`;
+            document.getElementById('detail-fav-status').style.display = favorites.includes(recipe.RecipeID) ? 'block' : 'none';
+
+            // Set Video
             const videoContainer = document.getElementById('video-container');
-            if(recipe.YouTube_ID) {
+            if(recipe.YouTube_ID && recipe.YouTube_ID.trim() !== '') {
                 videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${recipe.YouTube_ID}" allowfullscreen></iframe>`;
                 videoContainer.style.display = 'block';
             } else {
                 videoContainer.style.display = 'none';
             }
 
-            // Populate Header
-            document.getElementById('detail-title').innerText = recipe.Title;
-            document.querySelector('#detail-time span').innerText = recipe.Prep_Time;
-
-            // Populate Ingredients with Automatic Online Image Lookup
+            // Populate Ingredients (With Dynamic Image Logic)
             const ingGrid = document.getElementById('ingredients-grid');
             ingGrid.innerHTML = '';
-            if (Array.isArray(recipe.Ingredients)) {
+            if(Array.isArray(recipe.Ingredients) && recipe.Ingredients.length > 0) {
                 recipe.Ingredients.forEach(ing => {
-                    // 1. Clean up the ingredient name to match the online database format
-                    // (e.g., "Sona Masuri Rice" becomes "Rice", "Green Chilies" becomes "Green Chili")
                     let searchName = ing.name.trim();
                     if (searchName.toLowerCase().includes('rice')) searchName = 'Rice';
                     if (searchName.toLowerCase().includes('onion')) searchName = 'Onion';
@@ -459,72 +296,77 @@
                     if (searchName.toLowerCase().includes('ginger')) searchName = 'Ginger';
                     if (searchName.toLowerCase().includes('oil')) searchName = 'Oil';
                     
-                    // 2. Use the sheet image if provided, otherwise fetch automatically from the online database
-                    const finalImageUrl = ing.image && ing.image !== "" 
-                        ? ing.image 
-                        : `https://www.themealdb.com/images/ingredients/${encodeURIComponent(searchName)}.png`;
-            
+                    const finalImg = ing.image ? ing.image : `https://www.themealdb.com/images/ingredients/${encodeURIComponent(searchName)}.png`;
+
                     ingGrid.innerHTML += `
                         <div class="ingredient-item">
-                            <img src="${finalImageUrl}" class="ingredient-img" onerror="this.src='https://via.placeholder.com/60?text=${encodeURIComponent(ing.name)}'">
+                            <img src="${finalImg}" class="ingredient-img" loading="lazy" onerror="this.style.display='none'">
                             <div class="ingredient-name">${ing.name}</div>
-                            <div class="ingredient-qty">${ing.qty || ''}</div>
+                            <div class="ingredient-qty">${ing.qty || '-'}</div>
                         </div>
                     `;
                 });
+            } else {
+                ingGrid.innerHTML = '<p style="color:var(--text-light); text-align:center; grid-column:1/-1;">No ingredients listed.</p>';
             }
 
             // Populate Process
             const processList = document.getElementById('process-list');
             processList.innerHTML = '';
-            if(Array.isArray(recipe.Process_Steps)) {
+            if(Array.isArray(recipe.Process_Steps) && recipe.Process_Steps.length > 0) {
                 recipe.Process_Steps.forEach((step, index) => {
-                    const hasImage = step.image && step.image !== "" ? 'block' : 'none';
+                    const hasImg = step.image ? 'block' : 'none';
                     processList.innerHTML += `
                         <div class="process-step">
                             <div class="step-number">${index + 1}</div>
                             <div class="step-content">
                                 <div>${step.step}</div>
-                                <img src="${step.image}" class="step-img" style="display: ${hasImage};" onerror="this.style.display='none'">
+                                <img src="${step.image}" class="step-img" style="display: ${hasImg};" loading="lazy">
                             </div>
                         </div>
                     `;
                 });
+            } else {
+                processList.innerHTML = '<p style="color:var(--text-light); text-align:center;">No process steps listed.</p>';
             }
 
-            // Default to Ingredients tab
-            switchTab('ingredients');
+            switchTab('ingredients', 0); // Default to Ingredients
         }
 
         // --- CLOSE RECIPE DETAIL ---
         function closeRecipe() {
             document.getElementById('home-wrapper').style.display = 'block';
             document.getElementById('recipe-view').style.display = 'none';
-            // Stop video playing by clearing iframe
-            document.getElementById('video-container').innerHTML = ''; 
+            document.getElementById('video-container').innerHTML = ''; // Stop audio
         }
 
-        // --- TAB SWITCHER ---
-        function switchTab(tabName) {
-            // Update Buttons
+        // --- TAB SWITCHER LOGIC ---
+        function switchTab(tabName, index) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            // Update Content
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.getElementById(tabName === 'ingredients' ? 'btn-ingredients' : 'btn-process').classList.add('active');
             document.getElementById(tabName).classList.add('active');
+            
+            // Move the colored background slider
+            document.getElementById('tab-slider').style.transform = `translateX(${index * 100}%)`;
         }
 
-        // --- INITIALIZE ---
+        // --- TOAST NOTIFICATION ---
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- SERVICE WORKER & INIT ---
         window.onload = fetchRecipes;
 
-    </script>
-    <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registered', reg))
-                    .catch(err => console.error('Service Worker registration failed', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .catch(err => console.error('SW failed', err));
             });
         }
     </script>
