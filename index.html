@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Recipes PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff6b6b">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff6b6b/ffffff?text=R">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & SEARCH --- */
+        header {
+            position: sticky;
+            top: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .search-bar {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+            background: transparent;
+            padding-left: 10px;
+        }
+
+        /* --- HOME VIEW (GRID) --- */
+        #home-view {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            #home-view {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        .recipe-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .recipe-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .recipe-info {
+            padding: 1rem;
+        }
+
+        .recipe-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recipe-time {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- RECIPE DETAIL VIEW --- */
+        #recipe-view {
+            background: var(--bg-color);
+            min-height: 100vh;
+            display: none; /* Hidden by default */
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            border: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .detail-header {
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        /* --- TABS --- */
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin: 1.5rem;
+            background: #e9ecef;
+            border-radius: 50px;
+            padding: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            background: transparent;
+            border-radius: 50px;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 0 1.5rem 2rem 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* --- INGREDIENTS GRID --- */
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+
+        .ingredient-item {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .ingredient-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px;
+            background: #f1f2f6;
+        }
+
+        .ingredient-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .ingredient-qty {
+            font-size: 0.75rem;
+            color: var(--primary);
+        }
+
+        /* --- PROCESS TIMELINE --- */
+        .process-step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 15px;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .step-img {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none; /* Hidden if no image provided */
+        }
+
+        /* --- LOADER --- */
+        .loader {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-weight: 600;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-wrapper">
+        <header>
+            <div class="header-title">Recipe App</div>
+            <div class="search-bar">
+                <i class="fas fa-search" style="color: var(--text-light); align-self: center;"></i>
+                <input type="text" id="searchInput" placeholder="Search recipes...">
+            </div>
+        </header>
+        <main id="home-view">
+            <div class="loader" id="loader">Fetching delicious recipes...</div>
+            </main>
+    </div>
+
+    <section id="recipe-view">
+        <button class="back-btn" onclick="closeRecipe()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <div class="video-container" id="video-container">
+            </div>
+
+        <div class="detail-header">
+            <h1 class="detail-title" id="detail-title">Recipe Title</h1>
+            <div class="recipe-time" id="detail-time">
+                <i class="far fa-clock"></i> <span>0 mins</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('ingredients')">Ingredients</button>
+            <button class="tab-btn" onclick="switchTab('process')">Process</button>
+        </div>
+
+        <div id="ingredients" class="tab-content active">
+            <div class="ingredients-grid" id="ingredients-grid">
+                </div>
+        </div>
+
+        <div id="process" class="tab-content">
+            <div id="process-list">
+                </div>
+        </div>
+    </section>
+
+    <script>
+        // --- CONFIGURATION ---
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec'; 
+        let globalRecipes = [];
+
+        // --- FETCH DATA ---
+        async function fetchRecipes() {
+            try {
+                const response = await fetch(API_URL);
+                
+                // Check if the response is valid
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const data = await response.json();
+                globalRecipes = data;
+                
+                // Safely hide loader
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
+                
+                renderHome(globalRecipes);
+            } catch (error) {
+                console.error('Fetch error:', error);
+                
+                // Safely display error
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.innerText = 'Error fetching data. Check your Web App URL and permissions.';
+                } else {
+                    alert("API fetch failed. Check the console for details.");
+                }
+            }
+        }
+
+        // --- RENDER HOME GRID ---
+        function renderHome(recipes) {
+            const homeView = document.getElementById('home-view');
+            homeView.innerHTML = ''; // Clear loader or old data
+            
+            if(recipes.length === 0) {
+                homeView.innerHTML = '<div class="loader">No recipes found.</div>';
+                return;
+            }
+
+            recipes.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+                card.onclick = () => openRecipe(recipe.RecipeID);
+                
+                card.innerHTML = `
+                    <img src="${recipe.Thumbnail_URL || 'https://via.placeholder.com/300x200?text=No+Image'}" class="recipe-img" alt="${recipe.Title}">
+                    <div class="recipe-info">
+                        <div class="recipe-title">${recipe.Title}</div>
+                        <div class="recipe-time"><i class="far fa-clock"></i> ${recipe.Prep_Time}</div>
+                    </div>
+                `;
+                homeView.appendChild(card);
+            });
+        }
+
+        // --- SEARCH FUNCTIONALITY ---
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = globalRecipes.filter(r => r.Title.toLowerCase().includes(term));
+            renderHome(filtered);
+        });
+
+        // --- OPEN RECIPE DETAIL ---
+        function openRecipe(id) {
+            const recipe = globalRecipes.find(r => r.RecipeID === id);
+            if (!recipe) return;
+
+            // Hide Home, Show Detail
+            document.getElementById('home-wrapper').style.display = 'none';
+            document.getElementById('recipe-view').style.display = 'block';
+            window.scrollTo(0, 0);
+
+            // Populate Video
+            const videoContainer = document.getElementById('video-container');
+            if(recipe.YouTube_ID) {
+                videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${recipe.YouTube_ID}" allowfullscreen></iframe>`;
+                videoContainer.style.display = 'block';
+            } else {
+                videoContainer.style.display = 'none';
+            }
+
+            // Populate Header
+            document.getElementById('detail-title').innerText = recipe.Title;
+            document.querySelector('#detail-time span').innerText = recipe.Prep_Time;
+
+            // Populate Ingredients
+            const ingGrid = document.getElementById('ingredients-grid');
+            ingGrid.innerHTML = '';
+            if(Array.isArray(recipe.Ingredients)) {
+                recipe.Ingredients.forEach(ing => {
+                    ingGrid.innerHTML += `
+                        <div class="ingredient-item">
+                            <img src="${ing.image || 'https://via.placeholder.com/60?text=Ing'}" class="ingredient-img" onerror="this.src='https://via.placeholder.com/60?text=Ing'">
+                            <div class="ingredient-name">${ing.name}</div>
+                            <div class="ingredient-qty">${ing.qty || ''}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Populate Process
+            const processList = document.getElementById('process-list');
+            processList.innerHTML = '';
+            if(Array.isArray(recipe.Process_Steps)) {
+                recipe.Process_Steps.forEach((step, index) => {
+                    const hasImage = step.image && step.image !== "" ? 'block' : 'none';
+                    processList.innerHTML += `
+                        <div class="process-step">
+                            <div class="step-number">${index + 1}</div>
+                            <div class="step-content">
+                                <div>${step.step}</div>
+                                <img src="${step.image}" class="step-img" style="display: ${hasImage};" onerror="this.style.display='none'">
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Default to Ingredients tab
+            switchTab('ingredients');
+        }
+
+        // --- CLOSE RECIPE DETAIL ---
+        function closeRecipe() {
+            document.getElementById('home-wrapper').style.display = 'block';
+            document.getElementById('recipe-view').style.display = 'none';
+            // Stop video playing by clearing iframe
+            document.getElementById('video-container').innerHTML = ''; 
+        }
+
+        // --- TAB SWITCHER ---
+        function switchTab(tabName) {
+            // Update Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Update Content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // --- INITIALIZE ---
+        window.onload = fetchRecipes;
+
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
