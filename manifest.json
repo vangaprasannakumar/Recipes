@@ -1,7 +1,7 @@
 {
   "name": "My Recipes",
   "short_name": "My Recipes",
-  "description": "A modern PWA for personal recipe tracking.",
+  "description": "A personal recipe tracking.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f1f2f6",
