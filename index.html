@@ -443,14 +443,30 @@
             document.getElementById('detail-title').innerText = recipe.Title;
             document.querySelector('#detail-time span').innerText = recipe.Prep_Time;
 
-            // Populate Ingredients
+            // Populate Ingredients with Automatic Online Image Lookup
             const ingGrid = document.getElementById('ingredients-grid');
             ingGrid.innerHTML = '';
-            if(Array.isArray(recipe.Ingredients)) {
+            if (Array.isArray(recipe.Ingredients)) {
                 recipe.Ingredients.forEach(ing => {
+                    // 1. Clean up the ingredient name to match the online database format
+                    // (e.g., "Sona Masuri Rice" becomes "Rice", "Green Chilies" becomes "Green Chili")
+                    let searchName = ing.name.trim();
+                    if (searchName.toLowerCase().includes('rice')) searchName = 'Rice';
+                    if (searchName.toLowerCase().includes('onion')) searchName = 'Onion';
+                    if (searchName.toLowerCase().includes('tomato')) searchName = 'Tomato';
+                    if (searchName.toLowerCase().includes('chili') || searchName.toLowerCase().includes('chilies')) searchName = 'Green Chili';
+                    if (searchName.toLowerCase().includes('curd') || searchName.toLowerCase().includes('yogurt')) searchName = 'Yogurt';
+                    if (searchName.toLowerCase().includes('ginger')) searchName = 'Ginger';
+                    if (searchName.toLowerCase().includes('oil')) searchName = 'Oil';
+                    
+                    // 2. Use the sheet image if provided, otherwise fetch automatically from the online database
+                    const finalImageUrl = ing.image && ing.image !== "" 
+                        ? ing.image 
+                        : `https://www.themealdb.com/images/ingredients/${encodeURIComponent(searchName)}.png`;
+            
                     ingGrid.innerHTML += `
                         <div class="ingredient-item">
-                            <img src="${ing.image || 'https://via.placeholder.com/60?text=Ing'}" class="ingredient-img" onerror="this.src='https://via.placeholder.com/60?text=Ing'">
+                            <img src="${finalImageUrl}" class="ingredient-img" onerror="this.src='https://via.placeholder.com/60?text=${encodeURIComponent(ing.name)}'">
                             <div class="ingredient-name">${ing.name}</div>
                             <div class="ingredient-qty">${ing.qty || ''}</div>
                         </div>
