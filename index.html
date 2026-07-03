@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Recipes PWA</title>
+    <title>My Recipes</title>
     
+    <!-- PWA Setup & Favicons -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff4757">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/ff4757/ffffff?text=R">
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg">
 
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -36,7 +39,17 @@
             display: flex; flex-direction: column; gap: 12px;
             border-bottom: 1px solid rgba(0,0,0,0.02);
         }
-        .header-title { font-size: 1.8rem; font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        
+        .header-title { 
+            font-size: 1.8rem; font-weight: 700; color: var(--primary); 
+            display: flex; align-items: center; gap: 12px; 
+        }
+        
+        .app-logo {
+            width: 36px; height: 36px; border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
         .search-bar { display: flex; background: var(--card-bg); border-radius: 50px; padding: 0.8rem 1.2rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02), 0 2px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s; }
         .search-bar:focus-within { border-color: var(--primary-light); box-shadow: 0 4px 15px rgba(255, 71, 87, 0.1); }
         .search-bar input { border: none; outline: none; width: 100%; font-size: 1rem; background: transparent; padding-left: 12px; color: var(--text-dark); }
@@ -50,6 +63,7 @@
             box-shadow: var(--shadow); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer; position: relative;
         }
+        .recipe-card:hover { transform: translateY(-5px); }
         .recipe-card:active { transform: scale(0.96); }
         .recipe-img { width: 100%; height: 160px; object-fit: cover; }
         .recipe-info { padding: 1rem; }
@@ -69,9 +83,11 @@
         .skel-card { height: 260px; border-radius: var(--radius); }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* --- RECIPE DETAIL VIEW --- */
+        /* --- RECIPE DETAIL VIEW (MOBILE DEFAULT) --- */
         #recipe-view { background: var(--bg-color); min-height: 100vh; display: none; padding-bottom: 3rem; }
         
+        .recipe-desktop-grid { display: flex; flex-direction: column; }
+
         .detail-hero {
             position: relative; width: 100%; height: 300px;
             background-size: cover; background-position: center;
@@ -85,7 +101,7 @@
         .back-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.25); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); font-size: 1.2rem; transition: 0.3s; }
         .back-btn:active { background: rgba(255,255,255,0.4); }
 
-        .video-container { width: 90%; margin: -30px auto 20px auto; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; z-index: 5; background: #000; padding-top: 50.62%; /* 16:9 relative to 90% width */ display: none; }
+        .video-container { width: 90%; margin: -30px auto 20px auto; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; z-index: 5; background: #000; padding-top: 50.62%; display: none; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
         /* --- TABS --- */
@@ -120,15 +136,41 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
         @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        /* =========================================
+           DESKTOP LAYOUT OVERRIDES (SIDE-BY-SIDE)
+           ========================================= */
+        @media(min-width: 992px) {
+            #recipe-view { padding-top: 80px; }
+            .back-btn { background: var(--text-dark); border: none; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            
+            .recipe-desktop-grid { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 2.5rem; 
+                max-width: 1300px; 
+                margin: 0 auto; 
+                padding: 0 2rem;
+            }
+
+            /* Left Column: Hero & Video */
+            .detail-hero { border-radius: 30px; height: 350px; }
+            .video-container { width: 100%; margin: 25px 0 0 0; }
+            
+            /* Right Column: Tabs */
+            .tabs { margin: 0 0 25px 0; }
+            .tab-content { padding: 0; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- HOME VIEW -->
     <div id="home-wrapper">
         <header>
             <div class="header-title">
+                <img src="https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg" alt="My Recipes Logo" class="app-logo">
                 <span>My Recipes</span>
-                <i class="fas fa-utensils" style="color: var(--text-light); font-size: 1.2rem;"></i>
             </div>
             <div class="search-bar">
                 <i class="fas fa-search" style="color: var(--text-light); align-self: center;"></i>
@@ -136,6 +178,7 @@
             </div>
         </header>
         <main id="home-view">
+            <!-- Initial Skeletons -->
             <div class="skeleton skel-card"></div>
             <div class="skeleton skel-card"></div>
             <div class="skeleton skel-card"></div>
@@ -143,42 +186,54 @@
         </main>
     </div>
 
+    <!-- RECIPE DETAIL VIEW -->
     <section id="recipe-view">
         <button class="back-btn" onclick="closeRecipe()"><i class="fas fa-arrow-left"></i></button>
         
-        <div class="detail-hero" id="detail-hero" style="background-image: url('https://via.placeholder.com/600x400');">
-            <div class="detail-hero-overlay">
-                <h1 class="hero-title" id="detail-title">Recipe Title</h1>
-                <div class="hero-meta">
-                    <span id="detail-time"><i class="far fa-clock"></i> 0 mins</span>
-                    <span id="detail-fav-status" style="display:none;"><i class="fas fa-heart" style="color:var(--primary)"></i> Favorited</span>
+        <div class="recipe-desktop-grid">
+            <!-- LEFT COLUMN (DESKTOP) -->
+            <div class="recipe-media-col">
+                <div class="detail-hero" id="detail-hero" style="background-image: url('https://via.placeholder.com/600x400');">
+                    <div class="detail-hero-overlay">
+                        <h1 class="hero-title" id="detail-title">Recipe Title</h1>
+                        <div class="hero-meta">
+                            <span id="detail-time"><i class="far fa-clock"></i> 0 mins</span>
+                            <span id="detail-fav-status" style="display:none;"><i class="fas fa-heart" style="color:var(--primary)"></i> Favorited</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-container" id="video-container">
+                    <!-- Iframe injected here -->
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN (DESKTOP) -->
+            <div class="recipe-info-col">
+                <div class="tabs">
+                    <div class="tab-slider" id="tab-slider"></div>
+                    <button class="tab-btn active" id="btn-ingredients" onclick="switchTab('ingredients', 0)">Ingredients</button>
+                    <button class="tab-btn" id="btn-process" onclick="switchTab('process', 1)">Process</button>
+                </div>
+
+                <div id="ingredients" class="tab-content active">
+                    <div class="ingredients-grid" id="ingredients-grid"></div>
+                </div>
+
+                <div id="process" class="tab-content">
+                    <div id="process-list"></div>
                 </div>
             </div>
         </div>
-
-        <div class="video-container" id="video-container">
-            </div>
-
-        <div class="tabs">
-            <div class="tab-slider" id="tab-slider"></div>
-            <button class="tab-btn active" id="btn-ingredients" onclick="switchTab('ingredients', 0)">Ingredients</button>
-            <button class="tab-btn" id="btn-process" onclick="switchTab('process', 1)">Process</button>
-        </div>
-
-        <div id="ingredients" class="tab-content active">
-            <div class="ingredients-grid" id="ingredients-grid"></div>
-        </div>
-
-        <div id="process" class="tab-content">
-            <div id="process-list"></div>
-        </div>
     </section>
 
+    <!-- TOAST -->
     <div id="toast">Message here</div>
 
     <script>
         // --- CONFIGURATION ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec'; 
+        const API_URL = 'YOUR_WEB_APP_URL_HERE'; 
+        
         let globalRecipes = [];
         let favorites = JSON.parse(localStorage.getItem('recipeFavs')) || [];
 
@@ -217,7 +272,6 @@
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
                 card.onclick = (e) => {
-                    // Prevent opening recipe if they just clicked the heart
                     if(e.target.closest('.fav-btn')) return; 
                     openRecipe(recipe.RecipeID);
                 };
@@ -282,7 +336,7 @@
                 videoContainer.style.display = 'none';
             }
 
-            // Populate Ingredients (With Dynamic Image Logic)
+            // Populate Ingredients
             const ingGrid = document.getElementById('ingredients-grid');
             ingGrid.innerHTML = '';
             if(Array.isArray(recipe.Ingredients) && recipe.Ingredients.length > 0) {
@@ -330,14 +384,14 @@
                 processList.innerHTML = '<p style="color:var(--text-light); text-align:center;">No process steps listed.</p>';
             }
 
-            switchTab('ingredients', 0); // Default to Ingredients
+            switchTab('ingredients', 0);
         }
 
         // --- CLOSE RECIPE DETAIL ---
         function closeRecipe() {
             document.getElementById('home-wrapper').style.display = 'block';
             document.getElementById('recipe-view').style.display = 'none';
-            document.getElementById('video-container').innerHTML = ''; // Stop audio
+            document.getElementById('video-container').innerHTML = ''; 
         }
 
         // --- TAB SWITCHER LOGIC ---
@@ -348,7 +402,6 @@
             document.getElementById(tabName === 'ingredients' ? 'btn-ingredients' : 'btn-process').classList.add('active');
             document.getElementById(tabName).classList.add('active');
             
-            // Move the colored background slider
             document.getElementById('tab-slider').style.transform = `translateX(${index * 100}%)`;
         }
 
@@ -360,7 +413,7 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- SERVICE WORKER & INIT ---
+        // --- INIT ---
         window.onload = fetchRecipes;
 
         if ('serviceWorker' in navigator) {
