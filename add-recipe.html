@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Recipe — My Recipes</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #ff4757;
+            --primary-light: #ff6b81;
+            --bg-color: #f1f2f6;
+            --card-bg: #ffffff;
+            --text-dark: #2f3542;
+            --text-light: #747d8c;
+            --shadow: 0 8px 20px rgba(0,0,0,0.06);
+            --radius: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-dark); padding-bottom: 4rem; }
+
+        header {
+            position: sticky; top: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+            padding: 1.2rem 1.5rem; display: flex; align-items: center; gap: 12px; z-index: 100;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .back-link { color: var(--text-dark); font-size: 1.2rem; text-decoration: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(0,0,0,0.04); }
+        header h1 { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+
+        main { max-width: 640px; margin: 0 auto; padding: 1.5rem; }
+
+        .card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.2rem; }
+        .card h2 { font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+        .card h2 i { color: var(--primary); }
+
+        label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 6px; margin-top: 14px; }
+        label:first-of-type { margin-top: 0; }
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 0.7rem 0.9rem;
+            font-size: 0.95rem; font-family: 'Poppins', sans-serif; outline: none; background: #fafbfc;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary-light); background: white; }
+        textarea { resize: vertical; min-height: 60px; }
+
+        .yt-row { display: flex; gap: 8px; }
+        .yt-row input { flex: 1; }
+
+        .btn { border: none; border-radius: 50px; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.3rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255,71,87,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: rgba(255,71,87,0.1); color: var(--primary); }
+        .btn-ghost { background: rgba(0,0,0,0.05); color: var(--text-dark); }
+        .btn-full { width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; }
+        .btn:active { transform: scale(0.97); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .row-item { background: #fafbfc; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 10px; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+        .row-item input, .row-item textarea { background: white; }
+        .row-item .remove-row { flex-shrink: 0; background: none; border: none; color: #dfe4ea; font-size: 1.1rem; cursor: pointer; padding: 4px; }
+        .row-item .remove-row:hover { color: var(--primary); }
+        .ing-name { flex: 2; } .ing-qty { flex: 1; }
+        .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .step-item textarea { flex: 1; }
+
+        .add-row-btn { background: none; border: 1px dashed rgba(0,0,0,0.15); color: var(--text-light); width: 100%; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 6px; }
+        .add-row-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+
+        .thumb-preview { width: 100%; max-width: 220px; border-radius: 12px; margin-top: 10px; display: none; }
+
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hint { font-size: 0.75rem; color: var(--text-light); margin-top: 8px; line-height: 1.4; }
+
+        #toast { visibility: hidden; min-width: 250px; background-color: #2f3542; color: #fff; text-align: center; border-radius: 50px; padding: 12px 20px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); max-width: 90vw; }
+        #toast.show { visibility: visible; animation: fadein 0.4s, fadeout 0.4s 3.6s; }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="./index.html" class="back-link" aria-label="Back to recipes"><i class="fas fa-arrow-left"></i></a>
+        <h1>Add Recipe</h1>
+    </header>
+
+    <main>
+        <!-- AUTO-FILL FROM VIDEO -->
+        <div class="card">
+            <h2><i class="fab fa-youtube"></i> Auto-fill from a YouTube video</h2>
+            <div class="yt-row">
+                <input type="url" id="youtubeUrlInput" placeholder="Paste a YouTube link\u2026">
+                <button class="btn btn-primary" id="autoFillBtn" onclick="autoFillFromVideo()">
+                    <i class="fas fa-wand-magic-sparkles"></i> <span id="autoFillLabel">Fill</span>
+                </button>
+            </div>
+            <img id="thumbPreview" class="thumb-preview" alt="Video thumbnail">
+            <p class="hint">Gemini watches the video and fills in the fields below. Always double-check quantities and steps before saving \u2014 AI extraction isn't perfect.</p>
+        </div>
+
+        <!-- BASIC INFO -->
+        <div class="card">
+            <h2><i class="fas fa-circle-info"></i> Basic Info</h2>
+            <label for="titleInput">Title *</label>
+            <input type="text" id="titleInput" placeholder="e.g. Chicken Biryani">
+
+            <div class="grid-2">
+                <div>
+                    <label for="categoryInput">Category</label>
+                    <input type="text" id="categoryInput" placeholder="e.g. Dinner">
+                </div>
+                <div>
+                    <label for="servingsInput">Servings</label>
+                    <input type="text" id="servingsInput" placeholder="e.g. 4">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="prepTimeInput">Prep Time</label>
+                    <input type="text" id="prepTimeInput" placeholder="e.g. 20 mins">
+                </div>
+                <div>
+                    <label for="cookTimeInput">Cook Time</label>
+                    <input type="text" id="cookTimeInput" placeholder="e.g. 40 mins">
+                </div>
+            </div>
+            <label for="thumbnailInput">Thumbnail URL</label>
+            <input type="url" id="thumbnailInput" placeholder="Auto-filled from the video, or paste your own">
+        </div>
+
+        <!-- INGREDIENTS -->
+        <div class="card">
+            <h2><i class="fas fa-carrot"></i> Ingredients</h2>
+            <div id="ingredientsList"></div>
+            <button class="add-row-btn" onclick="addIngredientRow()"><i class="fas fa-plus"></i> Add Ingredient</button>
+        </div>
+
+        <!-- PROCESS STEPS -->
+        <div class="card">
+            <h2><i class="fas fa-list-ol"></i> Process Steps</h2>
+            <div id="stepsList"></div>
+            <button class="add-row-btn" onclick="addStepRow()"><i class="fas fa-plus"></i> Add Step</button>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveRecipe()">
+            <i class="fas fa-floppy-disk"></i> Save Recipe
+        </button>
+    </main>
+
+    <div id="toast"></div>
+
+    <script>
+        // Same Apps Script Web App URL used by index.html
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec';
+
+        let ingredientsList = [];
+        let stepsList = [];
+        let currentVideoId = '';
+
+        // --- UTILITIES ---
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function extractYouTubeId(url) {
+            const match = String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'show';
+            setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 4000);
+        }
+
+        // --- INGREDIENT ROWS ---
+        function renderIngredientRows() {
+            const container = document.getElementById('ingredientsList');
+            container.innerHTML = '';
+            ingredientsList.forEach((ing, index) => {
+                const row = document.createElement('div');
+                row.className = 'row-item';
+                row.innerHTML = `
+                    <input type="text" class="ing-name" placeholder="Ingredient name" value="${escapeHtml(ing.name || '')}">
+                    <input type="text" class="ing-qty" placeholder="Qty" value="${escapeHtml(ing.qty || '')}">
+                    <button class="remove-row" aria-label="Remove ingredient"><i class="fas fa-xmark"></i></button>
+                `;
+                row.querySelector('.ing-name').addEventListener('input', (e) => { ingredientsList[index].name = e.target.value; });
+                row.querySelector('.ing-qty').addEventListener('input', (e) => { ingredientsList[index].qty = e.target.value; });
+                row.querySelector('.remove-row').addEventListener('click', () => {
+                    ingredientsList.splice(index, 1);
+                    renderIngredientRows();
+                });
+                container.appendChild(row);
+            });
+        }
+
+        function addIngredientRow() {
+            ingredientsList.push({ name: '', qty: '' });
+            renderIngredientRows();
+        }
+
+        // --- STEP ROWS ---
+        function renderStepRows() {
+            const container = document.getElementById('stepsList');
+            container.innerHTML = '';
+            stepsList.forEach((step, index) => {
+                const row = document.createElement('div');
+                row.className = 'row-item step-item';
+                row.innerHTML = `
+                    <div class="step-num">${index + 1}</div>
+                    <textarea placeholder="Describe this step\u2026">${escapeHtml(step.step || '')}</textarea>
+                    <button class="remove-row" aria-label="Remove step"><i class="fas fa-xmark"></i></button>
+                `;
+                row.querySelector('textarea').addEventListener('input', (e) => { stepsList[index].step = e.target.value; });
+                row.querySelector('.remove-row').addEventListener('click', () => {
+                    stepsList.splice(index, 1);
+                    renderStepRows();
+                });
+                container.appendChild(row);
+            });
+        }
+
+        function addStepRow() {
+            stepsList.push({ step: '' });
+            renderStepRows();
+        }
+
+        // --- AUTO-FILL FROM YOUTUBE VIDEO (via Gemini, through Code.gs) ---
+        async function autoFillFromVideo() {
+            const url = document.getElementById('youtubeUrlInput').value.trim();
+            const videoId = extractYouTubeId(url);
+
+            if (!videoId) {
+                showToast('Please paste a valid YouTube link');
+                return;
+            }
+
+            currentVideoId = videoId;
+            const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            document.getElementById('thumbnailInput').value = thumbUrl;
+            const preview = document.getElementById('thumbPreview');
+            preview.src = thumbUrl;
+            preview.style.display = 'block';
+
+            const btn = document.getElementById('autoFillBtn');
+            const label = document.getElementById('autoFillLabel');
+            btn.disabled = true;
+            label.textContent = 'Watching video\u2026';
+            btn.insertAdjacentHTML('afterbegin', '');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'extractRecipe',
+                        youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`
+                    })
+                });
+                const rawText = await response.text();
+                const data = JSON.parse(rawText);
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('titleInput').value = data.Title || '';
+                document.getElementById('categoryInput').value = data.Category || '';
+                document.getElementById('prepTimeInput').value = data.Prep_Time || '';
+                document.getElementById('cookTimeInput').value = data.Cook_Time || '';
+                document.getElementById('servingsInput').value = data.Servings || '';
+
+                ingredientsList = Array.isArray(data.Ingredients) ? data.Ingredients : [];
+                stepsList = Array.isArray(data.Process_Steps) ? data.Process_Steps : [];
+                renderIngredientRows();
+                renderStepRows();
+
+                showToast('Filled from video \u2014 please review before saving \u2705');
+            } catch (err) {
+                showToast('Could not auto-fill: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                label.textContent = 'Fill';
+            }
+        }
+
+        // --- SAVE RECIPE ---
+        async function saveRecipe() {
+            const title = document.getElementById('titleInput').value.trim();
+            if (!title) { showToast('Please enter a recipe title'); return; }
+            if (ingredientsList.length === 0 || ingredientsList.every(i => !i.name.trim())) {
+                showToast('Add at least one ingredient'); return;
+            }
+            if (stepsList.length === 0 || stepsList.every(s => !s.step.trim())) {
+                showToast('Add at least one process step'); return;
+            }
+
+            const recipe = {
+                Title: title,
+                Category: document.getElementById('categoryInput').value.trim(),
+                Prep_Time: document.getElementById('prepTimeInput').value.trim(),
+                Cook_Time: document.getElementById('cookTimeInput').value.trim(),
+                Servings: document.getElementById('servingsInput').value.trim(),
+                Thumbnail_URL: document.getElementById('thumbnailInput').value.trim(),
+                YouTube_ID: currentVideoId,
+                Ingredients: ingredientsList.filter(i => i.name.trim()),
+                Process_Steps: stepsList.filter(s => s.step.trim())
+            };
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Saving\u2026';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'addRecipe', recipe })
+                });
+                const rawText = await response.text();
+                const result = JSON.parse(rawText);
+                if (result.error) throw new Error(result.error);
+
+                showToast('Recipe saved \u2705');
+                setTimeout(() => { window.location.href = './index.html'; }, 1200);
+            } catch (err) {
+                showToast('Could not save: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Recipe';
+            }
+        }
+
+        // --- INIT: start with one empty ingredient + step row ---
+        addIngredientRow();
+        addStepRow();
+    </script>
+</body>
+</html>
