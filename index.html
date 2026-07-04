@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Recipes 👨‍🍳</title>
+    <title>My Recipes</title>
     
     <!-- PWA Setup & Favicons -->
     <link rel="manifest" href="manifest.json">
@@ -61,6 +61,29 @@
             box-shadow: 0 4px 10px rgba(255,71,87,0.3); font-size: 1rem;
         }
         .add-recipe-btn:active { transform: scale(0.9); }
+
+        .header-icon-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(0,0,0,0.05); color: var(--text-dark); border: none;
+            cursor: pointer; font-size: 1rem;
+        }
+        .header-icon-btn:active { transform: scale(0.9) rotate(-30deg); }
+        .header-icon-btn.spinning i { animation: spin-icon 0.7s linear infinite; }
+        @keyframes spin-icon { to { transform: rotate(360deg); } }
+
+        /* --- UPDATE AVAILABLE BANNER --- */
+        .update-banner {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000;
+            background: var(--text-dark); color: white;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 14px 20px; font-size: 0.85rem; font-weight: 500;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+        }
+        .update-banner button {
+            background: var(--primary); color: white; border: none; border-radius: 50px;
+            padding: 8px 18px; font-weight: 600; font-size: 0.8rem; cursor: pointer; flex-shrink: 0;
+        }
 
         .install-btn {
             display: none; align-items: center; justify-content: center; gap: 6px;
@@ -232,6 +255,7 @@
                 </div>
                 <div class="header-actions">
                     <a href="./add-recipe.html" class="add-recipe-btn" aria-label="Add new recipe"><i class="fas fa-plus"></i></a>
+                    <button id="refreshBtn" class="header-icon-btn" onclick="refreshApp()" aria-label="Refresh recipes and check for updates"><i class="fas fa-rotate"></i></button>
                     <button id="installBtn" class="install-btn" onclick="handleInstallClick()" aria-label="Install this app">
                         <i class="fas fa-download"></i> Install
                     </button>
@@ -314,6 +338,12 @@
 
     <!-- TOAST -->
     <div id="toast">Message here</div>
+
+    <!-- UPDATE AVAILABLE BANNER -->
+    <div id="updateBanner" class="update-banner" style="display:none;">
+        <span><i class="fas fa-rotate"></i> A new version is available</span>
+        <button onclick="applyUpdate()">Update</button>
+    </div>
 
     <script>
         // --- CONFIGURATION ---
@@ -429,9 +459,13 @@
         }
 
         // --- FETCH DATA (stale-while-revalidate) ---
-        async function fetchRecipes() {
+        async function fetchRecipes(isManualRefresh) {
             const cached = loadCachedRecipes();
-            if (cached && cached.length) {
+            // On the very first load, show cached data immediately while the
+            // network call is in flight. A manual refresh skips this — the
+            // screen already shows the current data, so there's nothing to
+            // "pre-render"; it should just go straight to the network.
+            if (cached && cached.length && !isManualRefresh) {
                 globalRecipes = cached;
                 buildCategoryOptions();
                 applyFiltersAndRender();
@@ -454,6 +488,8 @@
                 buildCategoryOptions();
                 applyFiltersAndRender();
                 handleInitialRoute();
+
+                if (isManualRefresh) showToast('Recipes refreshed \u2705');
             } catch (error) {
                 if (cached && cached.length) {
                     showToast("Couldn't refresh \u2014 showing saved recipes");
@@ -861,11 +897,58 @@
         // --- INIT ---
         window.onload = fetchRecipes;
 
+        // --- SERVICE WORKER REGISTRATION + UPDATE DETECTION ---
+        let swRegistration = null;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                // updateViaCache: 'none' makes the browser always re-check sw.js
+                // itself over the network instead of trusting an HTTP cache of it
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+                    .then((registration) => {
+                        swRegistration = registration;
+
+                        // Ask immediately, every time the app is opened, instead of
+                        // waiting for the browser's own (slower, throttled) check
+                        registration.update();
+
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            if (!newWorker) return;
+                            newWorker.addEventListener('statechange', () => {
+                                // "installed" + an existing controller means this is an
+                                // update to an already-running app, not the first install
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    document.getElementById('updateBanner').style.display = 'flex';
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.error('SW failed', err));
             });
+        }
+
+        // Header refresh button: pulls the latest recipe data from the sheet
+        // (so a recipe added on another phone shows up here immediately) and
+        // also quietly checks whether a new app version is available.
+        function refreshApp() {
+            const btn = document.getElementById('refreshBtn');
+            if (btn) btn.classList.add('spinning');
+
+            if (swRegistration) {
+                swRegistration.update().catch(() => { /* non-fatal, data refresh still runs */ });
+            }
+
+            fetchRecipes(true).finally(() => {
+                if (btn) btn.classList.remove('spinning');
+            });
+        }
+
+        // Tapping "Update" on the banner — our sw.js already self-activates
+        // (skipWaiting runs unconditionally), so by now the new version is
+        // normally already active; reloading just loads it into the page.
+        function applyUpdate() {
+            window.location.reload();
         }
     </script>
 </body>
