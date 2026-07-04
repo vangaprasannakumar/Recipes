@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Recipes 🧑‍🍳</title>
+    <title>My Recipes 👨‍🍳</title>
     
     <!-- PWA Setup & Favicons -->
     <link rel="manifest" href="manifest.json">
@@ -362,30 +362,70 @@
         let deferredInstallPrompt = null;
         const activeTimers = {};
         let alarmAudioCtx = null;
+        let alarmAudioElement = null;
+
+        // Paste your GitHub raw audio URL here once uploaded, e.g.
+        // 'https://raw.githubusercontent.com/yourusername/reponame/main/alarm.mp3'
+        // Leave blank to use the built-in synthesized beep instead.
+        const CUSTOM_ALARM_SOUND_URL = 'https://github.com/vangaprasannakumar/Recipes/blob/main/casio_watch_ringtone.mp3';
 
         // Browsers block audio that isn't tied to a user gesture. We "unlock"
-        // one shared AudioContext the moment a timer is started (a real tap),
-        // then reuse it later when the countdown finishes (a background
-        // setInterval callback, which alone wouldn't be allowed to start audio).
+        // the AudioContext and the custom <audio> element the moment a timer
+        // is started (a real tap), then reuse them later when the countdown
+        // finishes (a background setInterval callback, which alone wouldn't
+        // be allowed to start audio). We also ask for notification permission
+        // here, the first time someone actually uses a timer.
         function ensureAudioUnlocked() {
             try {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContextClass) return;
-                if (!alarmAudioCtx) {
-                    alarmAudioCtx = new AudioContextClass();
-                }
-                if (alarmAudioCtx.state === 'suspended') {
-                    alarmAudioCtx.resume();
+                if (AudioContextClass) {
+                    if (!alarmAudioCtx) alarmAudioCtx = new AudioContextClass();
+                    if (alarmAudioCtx.state === 'suspended') alarmAudioCtx.resume();
                 }
             } catch (err) {
                 // Web Audio unsupported — the toast + vibration still notify the user
             }
+
+            if (CUSTOM_ALARM_SOUND_URL) {
+                try {
+                    if (!alarmAudioElement) alarmAudioElement = new Audio(CUSTOM_ALARM_SOUND_URL);
+                    const el = alarmAudioElement;
+                    const originalVolume = 1;
+                    el.volume = 0;
+                    el.play().then(() => {
+                        el.pause();
+                        el.currentTime = 0;
+                        el.volume = originalVolume;
+                    }).catch(() => { el.volume = originalVolume; });
+                } catch (err) {
+                    // Custom audio file unavailable — falls back to the synthesized beep
+                }
+            }
+
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
         }
 
-        // Synthesized digital-watch-style alarm: a quick burst of high-pitched
-        // square-wave beeps. No audio file needed, so nothing to host and no
-        // copyright concerns from borrowing someone else's ringtone.
+        // Plays the real uploaded alarm file if configured, otherwise a
+        // synthesized digital-watch-style beep (no audio file needed at all,
+        // so nothing to host and no copyright concerns from borrowing
+        // someone else's ringtone).
         function playAlarmSound() {
+            if (CUSTOM_ALARM_SOUND_URL) {
+                try {
+                    if (!alarmAudioElement) alarmAudioElement = new Audio(CUSTOM_ALARM_SOUND_URL);
+                    alarmAudioElement.currentTime = 0;
+                    alarmAudioElement.play().catch(() => playSynthesizedBeep());
+                    return;
+                } catch (err) {
+                    // fall through to the synthesized beep below
+                }
+            }
+            playSynthesizedBeep();
+        }
+
+        function playSynthesizedBeep() {
             if (!alarmAudioCtx) return;
             try {
                 const ctx = alarmAudioCtx;
@@ -413,6 +453,31 @@
                 }
             } catch (err) {
                 console.warn('Could not play alarm sound', err);
+            }
+        }
+
+        // Shows a real phone notification when a timer finishes — visible in
+        // the notification tray even if you've briefly switched apps. Falls
+        // through quietly if permission was never granted.
+        function notifyTimerDone(stepLabel) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+            const options = {
+                body: stepLabel || 'Your cooking step timer has finished.',
+                icon: 'https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg',
+                tag: 'recipe-timer'
+            };
+
+            if (swRegistration && swRegistration.showNotification) {
+                // Most mobile browsers require notifications to go through the
+                // service worker rather than the plain Notification constructor
+                swRegistration.showNotification('Timer done! \u23f0', options);
+            } else {
+                try {
+                    new Notification('Timer done! \u23f0', options);
+                } catch (err) {
+                    // Not supported in this context — toast/vibration/beep still cover it
+                }
             }
         }
 
@@ -708,6 +773,36 @@
             applyFiltersAndRender();
         });
 
+        // --- WAKE LOCK: keep the screen on while a recipe is open, so an
+        // active cooking timer doesn't get throttled/suspended by the OS
+        // when the screen would otherwise sleep mid-recipe. ---
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                // Not available/denied — timers still work fine as long as the screen stays on manually
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release().catch(() => {});
+                wakeLock = null;
+            }
+        }
+
+        // Re-acquire the wake lock if the OS released it when the screen was
+        // briefly turned off/backgrounded, as long as a recipe is still open
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && currentRecipeId) {
+                requestWakeLock();
+            }
+        });
+
         // --- OPEN / CLOSE RECIPE DETAIL (with history support for deep-links & back button) ---
         function openRecipe(id) {
             const recipe = globalRecipes.find(r => r.RecipeID === id);
@@ -718,6 +813,7 @@
 
         function showRecipeView(recipe) {
             currentRecipeId = recipe.RecipeID;
+            requestWakeLock();
 
             document.getElementById('home-wrapper').style.display = 'none';
             document.getElementById('recipe-view').style.display = 'block';
@@ -758,6 +854,7 @@
             // stop any running step timers so they don't keep ticking in the background
             Object.keys(activeTimers).forEach(key => clearInterval(activeTimers[key]));
             for (const key in activeTimers) delete activeTimers[key];
+            releaseWakeLock();
 
             currentRecipeId = null;
             document.getElementById('home-wrapper').style.display = 'block';
@@ -908,6 +1005,11 @@
                     showToast('\u23f0 Timer done!');
                     playAlarmSound();
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+                    const stepEl = container.closest('.process-step');
+                    const stepNumEl = stepEl ? stepEl.querySelector('.step-number') : null;
+                    const stepLabel = stepNumEl ? `Step ${stepNumEl.textContent} timer is up.` : 'Your cooking step timer has finished.';
+                    notifyTimerDone(stepLabel);
                 }
             }, 1000);
         }
@@ -984,6 +1086,7 @@
                     .catch(err => console.error('SW failed', err));
             });
         }
+
         // Header refresh button: pulls the latest recipe data from the sheet
         // (so a recipe added on another phone shows up here immediately) and
         // also quietly checks whether a new app version is available.
