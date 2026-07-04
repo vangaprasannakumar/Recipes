@@ -361,6 +361,60 @@
         let initialRouteHandled = false;
         let deferredInstallPrompt = null;
         const activeTimers = {};
+        let alarmAudioCtx = null;
+
+        // Browsers block audio that isn't tied to a user gesture. We "unlock"
+        // one shared AudioContext the moment a timer is started (a real tap),
+        // then reuse it later when the countdown finishes (a background
+        // setInterval callback, which alone wouldn't be allowed to start audio).
+        function ensureAudioUnlocked() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                if (!alarmAudioCtx) {
+                    alarmAudioCtx = new AudioContextClass();
+                }
+                if (alarmAudioCtx.state === 'suspended') {
+                    alarmAudioCtx.resume();
+                }
+            } catch (err) {
+                // Web Audio unsupported — the toast + vibration still notify the user
+            }
+        }
+
+        // Synthesized digital-watch-style alarm: a quick burst of high-pitched
+        // square-wave beeps. No audio file needed, so nothing to host and no
+        // copyright concerns from borrowing someone else's ringtone.
+        function playAlarmSound() {
+            if (!alarmAudioCtx) return;
+            try {
+                const ctx = alarmAudioCtx;
+                const now = ctx.currentTime;
+                const beepCount = 6;
+                const beepDuration = 0.09;
+                const gap = 0.08;
+
+                for (let i = 0; i < beepCount; i++) {
+                    const startTime = now + i * (beepDuration + gap);
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+
+                    osc.type = 'square';
+                    osc.frequency.value = 2800; // bright, digital-watch-alarm pitch
+
+                    gainNode.gain.setValueAtTime(0.0001, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.25, startTime + 0.005);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + beepDuration);
+
+                    osc.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + beepDuration);
+                }
+            } catch (err) {
+                console.warn('Could not play alarm sound', err);
+            }
+        }
 
         // --- INGREDIENT IMAGE MATCHING (expanded for Indian recipes) ---
         const INGREDIENT_IMAGE_MAP = [
@@ -828,6 +882,8 @@
                 return;
             }
 
+            ensureAudioUnlocked();
+
             let seconds = Math.max(1, parseInt(input.value, 10) || 5) * 60;
             input.style.display = 'none';
             display.style.display = 'inline-block';
@@ -850,6 +906,7 @@
                     input.style.display = 'inline-block';
                     display.style.display = 'none';
                     showToast('\u23f0 Timer done!');
+                    playAlarmSound();
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                 }
             }, 1000);
