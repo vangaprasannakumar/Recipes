@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Recipes</title>
     
     <!-- PWA Setup & Favicons -->
@@ -39,7 +39,9 @@
             display: flex; flex-direction: column; gap: 12px;
             border-bottom: 1px solid rgba(0,0,0,0.02);
         }
-        
+
+        .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
         .header-title { 
             font-size: 1.8rem; font-weight: 700; color: var(--primary); 
             display: flex; align-items: center; gap: 12px; 
@@ -50,9 +52,31 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
+        .install-btn {
+            display: none; align-items: center; justify-content: center; gap: 6px;
+            background: var(--primary); color: white; border: none; border-radius: 50px;
+            padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255,71,87,0.3); flex-shrink: 0;
+        }
+        .install-btn:active { transform: scale(0.96); }
+
         .search-bar { display: flex; background: var(--card-bg); border-radius: 50px; padding: 0.8rem 1.2rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02), 0 2px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s; }
         .search-bar:focus-within { border-color: var(--primary-light); box-shadow: 0 4px 15px rgba(255, 71, 87, 0.1); }
         .search-bar input { border: none; outline: none; width: 100%; font-size: 1rem; background: transparent; padding-left: 12px; color: var(--text-dark); }
+
+        /* --- FILTER ROW (VIEW TOGGLE / CATEGORY / SORT) --- */
+        .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .view-toggle { display: flex; background: rgba(223,228,234,0.5); border-radius: 50px; padding: 4px; flex-shrink: 0; }
+        .view-toggle-btn { border: none; background: transparent; padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: var(--text-light); cursor: pointer; transition: 0.25s; display: flex; align-items: center; gap: 5px; }
+        .view-toggle-btn.active { background: var(--primary); color: white; box-shadow: 0 3px 8px rgba(255,71,87,0.3); }
+
+        .filter-group { display: none; }
+        .filter-group.visible { display: block; }
+        .filter-select {
+            border: 1px solid rgba(0,0,0,0.08); background: var(--card-bg); color: var(--text-dark);
+            border-radius: 50px; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 500;
+            outline: none; cursor: pointer;
+        }
 
         /* --- HOME VIEW (GRID) --- */
         #home-view { padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; }
@@ -78,6 +102,14 @@
         }
         .fav-btn.active { color: var(--primary); }
 
+        /* --- EMPTY / ERROR STATES --- */
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 3rem 1.5rem; color: var(--text-light); }
+        .empty-state i { font-size: 2.2rem; margin-bottom: 12px; display: block; color: #dfe4ea; }
+        .retry-btn {
+            margin-top: 14px; background: var(--primary); color: white; border: none; border-radius: 50px;
+            padding: 0.6rem 1.4rem; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+        }
+
         /* --- SKELETON LOADER --- */
         .skeleton { background: #e2e5ec; background: linear-gradient(90deg, #e2e5ec 25%, #f1f2f6 50%, #e2e5ec 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 10px; }
         .skel-card { height: 260px; border-radius: var(--radius); }
@@ -96,13 +128,22 @@
         }
         .detail-hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; color: white; }
         .hero-title { font-size: 1.6rem; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
-        .hero-meta { font-size: 0.9rem; opacity: 0.9; display: flex; gap: 15px; }
+        .hero-meta { font-size: 0.9rem; opacity: 0.9; display: flex; gap: 15px; flex-wrap: wrap; }
 
         .back-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.25); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); font-size: 1.2rem; transition: 0.3s; }
         .back-btn:active { background: rgba(255,255,255,0.4); }
 
-        .video-container { width: 90%; margin: -30px auto 20px auto; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; z-index: 5; background: #000; padding-top: 50.62%; display: none; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .hero-fav-btn {
+            position: absolute; top: 20px; right: 20px; width: 45px; height: 45px; border-radius: 50%;
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: white;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            backdrop-filter: blur(10px); font-size: 1.15rem; transition: 0.3s; z-index: 10;
+        }
+        .hero-fav-btn.active { background: white; color: var(--primary); }
+        .hero-fav-btn:active { transform: scale(0.9); }
+
+        .video-container { width: 90%; margin: -30px auto 20px auto; border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; z-index: 5; background: #000; aspect-ratio: 100 / 50.62; display: none; }
+        .video-container iframe { width: 100%; height: 100%; border: none; display: block; }
 
         /* --- TABS --- */
         .tabs { display: flex; background: rgba(223, 228, 234, 0.5); border-radius: 50px; padding: 5px; margin: 20px 1.5rem; position: relative; }
@@ -128,6 +169,12 @@
         .step-number { background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; z-index: 1; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); }
         .step-content { background: var(--card-bg); padding: 1.2rem; border-radius: 15px; width: 100%; box-shadow: var(--shadow); line-height: 1.5; font-size: 0.95rem; border: 1px solid rgba(0,0,0,0.02); }
         .step-img { width: 100%; border-radius: 10px; margin-top: 12px; display: none; }
+
+        /* --- STEP TIMER (COOKING MODE) --- */
+        .step-timer { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #dfe4ea; flex-wrap: wrap; }
+        .timer-input { width: 54px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 5px 6px; font-size: 0.85rem; text-align: center; font-family: 'Poppins', sans-serif; }
+        .timer-btn { background: var(--primary); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .timer-display { font-weight: 700; font-size: 1rem; color: var(--primary); font-variant-numeric: tabular-nums; }
 
         /* --- TOAST NOTIFICATION --- */
         #toast { visibility: hidden; min-width: 250px; background-color: #2f3542; color: #fff; text-align: center; border-radius: 50px; padding: 12px 20px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
@@ -168,16 +215,39 @@
     <!-- HOME VIEW -->
     <div id="home-wrapper">
         <header>
-            <div class="header-title">
-                <img src="https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg" alt="My Recipes Logo" class="app-logo">
-                <span>My Recipes</span>
+            <div class="header-top-row">
+                <div class="header-title">
+                    <img src="https://i.postimg.cc/TwR1ZyYG/Recipes-App-Logo-192x192.jpg" alt="My Recipes Logo" class="app-logo">
+                    <span>My Recipes</span>
+                </div>
+                <button id="installBtn" class="install-btn" onclick="handleInstallClick()" aria-label="Install this app">
+                    <i class="fas fa-download"></i> Install
+                </button>
             </div>
             <div class="search-bar">
                 <i class="fas fa-search" style="color: var(--text-light); align-self: center;"></i>
-                <input type="text" id="searchInput" placeholder="What are you craving?">
+                <input type="text" id="searchInput" placeholder="What are you craving?" aria-label="Search recipes and ingredients">
+            </div>
+            <div class="filter-row">
+                <div class="view-toggle" role="group" aria-label="Filter by favorites">
+                    <button class="view-toggle-btn active" data-view="all" aria-label="Show all recipes">All</button>
+                    <button class="view-toggle-btn" data-view="favorites" aria-label="Show favorite recipes"><i class="fas fa-heart"></i> Favorites</button>
+                </div>
+                <div class="filter-group" id="categoryFilterGroup">
+                    <select id="categoryFilter" class="filter-select" aria-label="Filter by category">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+                <div class="filter-group visible">
+                    <select id="sortFilter" class="filter-select" aria-label="Sort recipes">
+                        <option value="default">Sort: Default</option>
+                        <option value="az">Sort: A-Z</option>
+                        <option value="time">Sort: Prep Time</option>
+                    </select>
+                </div>
             </div>
         </header>
-        <main id="home-view">
+        <main id="home-view" aria-live="polite">
             <!-- Initial Skeletons -->
             <div class="skeleton skel-card"></div>
             <div class="skeleton skel-card"></div>
@@ -188,17 +258,19 @@
 
     <!-- RECIPE DETAIL VIEW -->
     <section id="recipe-view">
-        <button class="back-btn" onclick="closeRecipe()"><i class="fas fa-arrow-left"></i></button>
+        <button class="back-btn" onclick="closeRecipe()" aria-label="Back to recipes"><i class="fas fa-arrow-left"></i></button>
         
         <div class="recipe-desktop-grid">
             <!-- LEFT COLUMN (DESKTOP) -->
             <div class="recipe-media-col">
                 <div class="detail-hero" id="detail-hero" style="background-image: url('https://via.placeholder.com/600x400');">
+                    <button class="hero-fav-btn" id="heroFavBtn" onclick="toggleFavorite(currentRecipeId)" aria-label="Add to favorites">
+                        <i class="fas fa-heart"></i>
+                    </button>
                     <div class="detail-hero-overlay">
                         <h1 class="hero-title" id="detail-title">Recipe Title</h1>
-                        <div class="hero-meta">
+                        <div class="hero-meta" id="detail-meta">
                             <span id="detail-time"><i class="far fa-clock"></i> 0 mins</span>
-                            <span id="detail-fav-status" style="display:none;"><i class="fas fa-heart" style="color:var(--primary)"></i> Favorited</span>
                         </div>
                     </div>
                 </div>
@@ -232,166 +304,506 @@
 
     <script>
         // --- CONFIGURATION ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec'; 
-        
-        let globalRecipes = [];
-        let favorites = JSON.parse(localStorage.getItem('recipeFavs')) || [];
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwVcvKjn9fMmqZDVUremNdxwBJx9mvRKNyy6N7cZsnZrbaIaM0N2uOb7r2vnGmjQLdmmQ/exec';
+        const CACHE_KEY = 'recipeDataCache';
 
-        // --- FETCH DATA ---
+        // --- STATE ---
+        let globalRecipes = [];
+        let favorites = loadFavorites();
+        let currentView = 'all';        // 'all' | 'favorites'
+        let currentCategory = 'all';
+        let currentSort = 'default';
+        let searchTerm = '';
+        let currentRecipeId = null;
+        let initialRouteHandled = false;
+        let deferredInstallPrompt = null;
+        const activeTimers = {};
+
+        // --- INGREDIENT IMAGE MATCHING (expanded for Indian recipes) ---
+        const INGREDIENT_IMAGE_MAP = [
+            { match: /rice/i, name: 'Rice' },
+            { match: /onion/i, name: 'Onion' },
+            { match: /tomato/i, name: 'Tomato' },
+            { match: /chil(i|ies|li|lies)/i, name: 'Green Chili' },
+            { match: /curd|yog(h)?urt/i, name: 'Yogurt' },
+            { match: /ginger/i, name: 'Ginger' },
+            { match: /garlic/i, name: 'Garlic' },
+            { match: /turmeric/i, name: 'Turmeric' },
+            { match: /cumin/i, name: 'Cumin' },
+            { match: /coriander|cilantro/i, name: 'Coriander' },
+            { match: /mustard/i, name: 'Mustard Seeds' },
+            { match: /garam masala/i, name: 'Garam Masala' },
+            { match: /cardamom/i, name: 'Cardamom' },
+            { match: /cinnamon/i, name: 'Cinnamon' },
+            { match: /curry leaves/i, name: 'Curry Leaves' },
+            { match: /coconut/i, name: 'Coconut' },
+            { match: /lentil|dal|daal/i, name: 'Lentils' },
+            { match: /potato/i, name: 'Potato' },
+            { match: /capsicum|bell pepper/i, name: 'Bell Pepper' },
+            { match: /lemon/i, name: 'Lemon' },
+            { match: /mint/i, name: 'Mint' },
+            { match: /paneer/i, name: 'Paneer' },
+            { match: /ghee/i, name: 'Ghee' },
+            { match: /^oil/i, name: 'Oil' },
+            { match: /salt/i, name: 'Salt' },
+            { match: /sugar/i, name: 'Sugar' }
+        ];
+
+        // Generic fallback icon (inline SVG) used when an ingredient image 404s
+        const FALLBACK_INGREDIENT_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#e2e5ec"/><path d="M20 16v14a6 6 0 0012 0V16M26 16v14M32 44l12-20M44 24a6 6 0 11-12 0" stroke="#a4b0be" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'
+        );
+
+        // --- UTILITIES ---
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function resolveIngredientImage(ing) {
+            if (ing.image) return ing.image;
+            const name = (ing.name || '').trim();
+            for (const entry of INGREDIENT_IMAGE_MAP) {
+                if (entry.match.test(name)) return `https://www.themealdb.com/images/ingredients/${encodeURIComponent(entry.name)}.png`;
+            }
+            return `https://www.themealdb.com/images/ingredients/${encodeURIComponent(name)}.png`;
+        }
+
+        function parsePrepMinutes(text) {
+            if (!text) return 0;
+            const match = String(text).match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
+        }
+
+        // --- FAVORITES (localStorage, safe) ---
+        function loadFavorites() {
+            try {
+                return JSON.parse(localStorage.getItem('recipeFavs')) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+        function saveFavorites() {
+            try {
+                localStorage.setItem('recipeFavs', JSON.stringify(favorites));
+            } catch (e) {
+                console.warn('Could not save favorites:', e);
+            }
+        }
+
+        // --- RECIPE CACHE (localStorage, safe) ---
+        function loadCachedRecipes() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return (parsed && Array.isArray(parsed.data)) ? parsed.data : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        function saveCachedRecipes(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+            } catch (e) {
+                console.warn('Could not cache recipes:', e);
+            }
+        }
+
+        // --- FETCH DATA (stale-while-revalidate) ---
         async function fetchRecipes() {
+            const cached = loadCachedRecipes();
+            if (cached && cached.length) {
+                globalRecipes = cached;
+                buildCategoryOptions();
+                applyFiltersAndRender();
+                handleInitialRoute();
+            }
+
             try {
                 const response = await fetch(API_URL, { redirect: "follow" });
                 const rawText = await response.text();
+                let data;
                 try {
-                    const data = JSON.parse(rawText);
-                    if (data.error) throw new Error(data.error);
-                    globalRecipes = data;
-                    renderHome(globalRecipes);
-                } catch(e) {
+                    data = JSON.parse(rawText);
+                } catch (e) {
                     throw new Error("Invalid API response. Check URL or permissions.");
                 }
+                if (data.error) throw new Error(data.error);
+
+                globalRecipes = data;
+                saveCachedRecipes(data);
+                buildCategoryOptions();
+                applyFiltersAndRender();
+                handleInitialRoute();
             } catch (error) {
-                document.getElementById('home-view').innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--primary);"><b>Error:</b> ${error.message}</div>`;
+                if (cached && cached.length) {
+                    showToast("Couldn't refresh \u2014 showing saved recipes");
+                } else {
+                    document.getElementById('home-view').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <b>${escapeHtml(error.message)}</b>
+                            <div><button class="retry-btn" onclick="fetchRecipes()">Retry</button></div>
+                        </div>`;
+                }
             }
+        }
+
+        // --- CATEGORY OPTIONS (only shown if the sheet actually has a Category column) ---
+        function buildCategoryOptions() {
+            const group = document.getElementById('categoryFilterGroup');
+            const select = document.getElementById('categoryFilter');
+            const categories = [...new Set(globalRecipes.map(r => r.Category).filter(c => c && String(c).trim() !== ''))].sort();
+
+            if (categories.length === 0) {
+                group.classList.remove('visible');
+                return;
+            }
+
+            group.classList.add('visible');
+            const previousValue = currentCategory;
+            select.innerHTML = `<option value="all">All Categories</option>` +
+                categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+            if (categories.includes(previousValue)) {
+                select.value = previousValue;
+            } else {
+                currentCategory = 'all';
+                select.value = 'all';
+            }
+        }
+
+        // --- FILTER / SORT / RENDER PIPELINE ---
+        function applyFiltersAndRender() {
+            let list = [...globalRecipes];
+
+            if (currentView === 'favorites') {
+                list = list.filter(r => favorites.includes(r.RecipeID));
+            }
+            if (currentCategory !== 'all') {
+                list = list.filter(r => r.Category === currentCategory);
+            }
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                list = list.filter(r => {
+                    const titleMatch = (r.Title || '').toLowerCase().includes(term);
+                    const ingMatch = Array.isArray(r.Ingredients) && r.Ingredients.some(ing => (ing.name || '').toLowerCase().includes(term));
+                    return titleMatch || ingMatch;
+                });
+            }
+            if (currentSort === 'az') {
+                list.sort((a, b) => (a.Title || '').localeCompare(b.Title || ''));
+            } else if (currentSort === 'time') {
+                list.sort((a, b) => parsePrepMinutes(a.Prep_Time) - parsePrepMinutes(b.Prep_Time));
+            }
+
+            renderHome(list);
         }
 
         // --- RENDER HOME GRID ---
         function renderHome(recipes) {
             const homeView = document.getElementById('home-view');
             homeView.innerHTML = '';
-            
-            if(recipes.length === 0) {
-                homeView.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color: var(--text-light); margin-top:2rem;">No recipes found.</div>';
+
+            if (recipes.length === 0) {
+                const message = currentView === 'favorites'
+                    ? "No favorites yet \u2014 tap the heart on a recipe to save it here."
+                    : "No recipes found.";
+                homeView.innerHTML = `<div class="empty-state"><i class="far fa-heart"></i>${escapeHtml(message)}</div>`;
                 return;
             }
 
             recipes.forEach(recipe => {
                 const isFav = favorites.includes(recipe.RecipeID);
                 const thumb = recipe.Thumbnail_URL || 'https://via.placeholder.com/300x200?text=No+Image';
-                
+
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
-                card.onclick = (e) => {
-                    if(e.target.closest('.fav-btn')) return; 
-                    openRecipe(recipe.RecipeID);
-                };
-                
+
                 card.innerHTML = `
-                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${recipe.RecipeID}', this)">
+                    <button class="fav-btn ${isFav ? 'active' : ''}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                         <i class="fas fa-heart"></i>
                     </button>
-                    <img src="${thumb}" class="recipe-img" loading="lazy" alt="${recipe.Title}">
+                    <img src="${escapeHtml(thumb)}" class="recipe-img" loading="lazy" alt="${escapeHtml(recipe.Title || '')}">
                     <div class="recipe-info">
-                        <div class="recipe-title">${recipe.Title}</div>
-                        <div class="recipe-time"><i class="far fa-clock"></i> ${recipe.Prep_Time}</div>
+                        <div class="recipe-title">${escapeHtml(recipe.Title)}</div>
+                        <div class="recipe-time"><i class="far fa-clock"></i> ${escapeHtml(recipe.Prep_Time)}</div>
                     </div>
                 `;
+
+                card.querySelector('.fav-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(recipe.RecipeID);
+                });
+                card.addEventListener('click', () => openRecipe(recipe.RecipeID));
+
                 homeView.appendChild(card);
             });
         }
 
         // --- FAVORITES LOGIC ---
-        function toggleFavorite(id, btnElement) {
-            if(favorites.includes(id)) {
+        function toggleFavorite(id) {
+            if (!id) return;
+            const wasFav = favorites.includes(id);
+            if (wasFav) {
                 favorites = favorites.filter(fav => fav !== id);
-                btnElement.classList.remove('active');
                 showToast("Removed from favorites");
             } else {
                 favorites.push(id);
-                btnElement.classList.add('active');
-                showToast("Added to favorites ❤️");
+                showToast("Added to favorites \u2764\ufe0f");
             }
-            localStorage.setItem('recipeFavs', JSON.stringify(favorites));
+            saveFavorites();
+
+            if (currentRecipeId === id) {
+                const heroBtn = document.getElementById('heroFavBtn');
+                heroBtn.classList.toggle('active', !wasFav);
+                heroBtn.setAttribute('aria-label', !wasFav ? 'Remove from favorites' : 'Add to favorites');
+            }
+            applyFiltersAndRender();
         }
 
-        // --- SEARCH FUNCTIONALITY ---
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = globalRecipes.filter(r => r.Title.toLowerCase().includes(term));
-            renderHome(filtered);
+        // --- PWA SHORTCUT SUPPORT (long-press "Favorites" shortcut -> ?view=favorites) ---
+        (function applyShortcutParam() {
+            const viewParam = new URLSearchParams(location.search).get('view');
+            if (viewParam === 'favorites') {
+                currentView = 'favorites';
+                document.querySelectorAll('.view-toggle-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.view === 'favorites');
+                });
+            }
+        })();
+
+        // --- VIEW TOGGLE (ALL / FAVORITES) ---
+        document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentView = btn.dataset.view;
+                document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyFiltersAndRender();
+            });
         });
 
-        // --- OPEN RECIPE DETAIL ---
+        // --- CATEGORY / SORT FILTERS ---
+        document.getElementById('categoryFilter').addEventListener('change', (e) => {
+            currentCategory = e.target.value;
+            applyFiltersAndRender();
+        });
+        document.getElementById('sortFilter').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            applyFiltersAndRender();
+        });
+
+        // --- SEARCH FUNCTIONALITY (title + ingredients) ---
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            applyFiltersAndRender();
+        });
+
+        // --- OPEN / CLOSE RECIPE DETAIL (with history support for deep-links & back button) ---
         function openRecipe(id) {
             const recipe = globalRecipes.find(r => r.RecipeID === id);
             if (!recipe) return;
+            history.pushState({ recipeId: id }, '', `?recipe=${encodeURIComponent(id)}`);
+            showRecipeView(recipe);
+        }
+
+        function showRecipeView(recipe) {
+            currentRecipeId = recipe.RecipeID;
 
             document.getElementById('home-wrapper').style.display = 'none';
             document.getElementById('recipe-view').style.display = 'block';
             window.scrollTo(0, 0);
 
-            // Set Hero Header
             const thumb = recipe.Thumbnail_URL || 'https://via.placeholder.com/600x400?text=Recipe';
-            document.getElementById('detail-hero').style.backgroundImage = `url('${thumb}')`;
-            document.getElementById('detail-title').innerText = recipe.Title;
-            document.getElementById('detail-time').innerHTML = `<i class="far fa-clock"></i> ${recipe.Prep_Time}`;
-            document.getElementById('detail-fav-status').style.display = favorites.includes(recipe.RecipeID) ? 'block' : 'none';
+            document.getElementById('detail-hero').style.backgroundImage = `url('${thumb.replace(/'/g, "%27")}')`;
+            document.getElementById('detail-title').textContent = recipe.Title || '';
 
-            // Set Video
+            const isFav = favorites.includes(recipe.RecipeID);
+            const heroBtn = document.getElementById('heroFavBtn');
+            heroBtn.classList.toggle('active', isFav);
+            heroBtn.setAttribute('aria-label', isFav ? 'Remove from favorites' : 'Add to favorites');
+
+            // Meta row: time + optional servings / cook time / difficulty (only if present in the sheet)
+            let metaHtml = `<span><i class="far fa-clock"></i> ${escapeHtml(recipe.Prep_Time || '-')}</span>`;
+            if (recipe.Servings) metaHtml += `<span><i class="fas fa-users"></i> ${escapeHtml(recipe.Servings)}</span>`;
+            if (recipe.Cook_Time) metaHtml += `<span><i class="fas fa-fire"></i> ${escapeHtml(recipe.Cook_Time)}</span>`;
+            if (recipe.Difficulty) metaHtml += `<span><i class="fas fa-signal"></i> ${escapeHtml(recipe.Difficulty)}</span>`;
+            document.getElementById('detail-meta').innerHTML = metaHtml;
+
+            // Video
             const videoContainer = document.getElementById('video-container');
-            if(recipe.YouTube_ID && recipe.YouTube_ID.trim() !== '') {
-                videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${recipe.YouTube_ID}" allowfullscreen></iframe>`;
+            if (recipe.YouTube_ID && String(recipe.YouTube_ID).trim() !== '') {
+                videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(recipe.YouTube_ID)}" allowfullscreen loading="lazy"></iframe>`;
                 videoContainer.style.display = 'block';
             } else {
+                videoContainer.innerHTML = '';
                 videoContainer.style.display = 'none';
             }
 
-            // Populate Ingredients
-            const ingGrid = document.getElementById('ingredients-grid');
-            ingGrid.innerHTML = '';
-            if(Array.isArray(recipe.Ingredients) && recipe.Ingredients.length > 0) {
-                recipe.Ingredients.forEach(ing => {
-                    let searchName = ing.name.trim();
-                    if (searchName.toLowerCase().includes('rice')) searchName = 'Rice';
-                    if (searchName.toLowerCase().includes('onion')) searchName = 'Onion';
-                    if (searchName.toLowerCase().includes('tomato')) searchName = 'Tomato';
-                    if (searchName.toLowerCase().includes('chili') || searchName.toLowerCase().includes('chilies')) searchName = 'Green Chili';
-                    if (searchName.toLowerCase().includes('curd') || searchName.toLowerCase().includes('yogurt')) searchName = 'Yogurt';
-                    if (searchName.toLowerCase().includes('ginger')) searchName = 'Ginger';
-                    if (searchName.toLowerCase().includes('oil')) searchName = 'Oil';
-                    
-                    const finalImg = ing.image ? ing.image : `https://www.themealdb.com/images/ingredients/${encodeURIComponent(searchName)}.png`;
-
-                    ingGrid.innerHTML += `
-                        <div class="ingredient-item">
-                            <img src="${finalImg}" class="ingredient-img" loading="lazy" onerror="this.style.display='none'">
-                            <div class="ingredient-name">${ing.name}</div>
-                            <div class="ingredient-qty">${ing.qty || '-'}</div>
-                        </div>
-                    `;
-                });
-            } else {
-                ingGrid.innerHTML = '<p style="color:var(--text-light); text-align:center; grid-column:1/-1;">No ingredients listed.</p>';
-            }
-
-            // Populate Process
-            const processList = document.getElementById('process-list');
-            processList.innerHTML = '';
-            if(Array.isArray(recipe.Process_Steps) && recipe.Process_Steps.length > 0) {
-                recipe.Process_Steps.forEach((step, index) => {
-                    const hasImg = step.image ? 'block' : 'none';
-                    processList.innerHTML += `
-                        <div class="process-step">
-                            <div class="step-number">${index + 1}</div>
-                            <div class="step-content">
-                                <div>${step.step}</div>
-                                <img src="${step.image}" class="step-img" style="display: ${hasImg};" loading="lazy">
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                processList.innerHTML = '<p style="color:var(--text-light); text-align:center;">No process steps listed.</p>';
-            }
-
+            renderIngredients(recipe);
+            renderProcessSteps(recipe);
             switchTab('ingredients', 0);
         }
 
-        // --- CLOSE RECIPE DETAIL ---
-        function closeRecipe() {
+        function hideRecipeView() {
+            // stop any running step timers so they don't keep ticking in the background
+            Object.keys(activeTimers).forEach(key => clearInterval(activeTimers[key]));
+            for (const key in activeTimers) delete activeTimers[key];
+
+            currentRecipeId = null;
             document.getElementById('home-wrapper').style.display = 'block';
             document.getElementById('recipe-view').style.display = 'none';
-            document.getElementById('video-container').innerHTML = ''; 
+            document.getElementById('video-container').innerHTML = '';
+        }
+
+        function closeRecipe() {
+            history.back();
+        }
+
+        window.addEventListener('popstate', (e) => {
+            const id = e.state && e.state.recipeId;
+            if (id) {
+                const recipe = globalRecipes.find(r => r.RecipeID === id);
+                if (recipe) {
+                    showRecipeView(recipe);
+                } else {
+                    hideRecipeView();
+                }
+            } else {
+                hideRecipeView();
+            }
+        });
+
+        // Handle a direct/shared link like index.html?recipe=ID once data is available
+        function handleInitialRoute() {
+            if (initialRouteHandled) return;
+            initialRouteHandled = true;
+
+            const params = new URLSearchParams(location.search);
+            const id = params.get('recipe');
+            history.replaceState({ recipeId: null }, '', location.pathname);
+
+            if (id) {
+                const recipe = globalRecipes.find(r => r.RecipeID === id);
+                if (recipe) {
+                    history.pushState({ recipeId: id }, '', `?recipe=${encodeURIComponent(id)}`);
+                    showRecipeView(recipe);
+                }
+            }
+        }
+
+        // --- INGREDIENTS RENDER ---
+        function renderIngredients(recipe) {
+            const ingGrid = document.getElementById('ingredients-grid');
+            ingGrid.innerHTML = '';
+
+            if (!Array.isArray(recipe.Ingredients) || recipe.Ingredients.length === 0) {
+                ingGrid.innerHTML = '<p style="color:var(--text-light); text-align:center; grid-column:1/-1;">No ingredients listed.</p>';
+                return;
+            }
+
+            recipe.Ingredients.forEach(ing => {
+                const imgSrc = resolveIngredientImage(ing);
+                const item = document.createElement('div');
+                item.className = 'ingredient-item';
+                item.innerHTML = `
+                    <img src="${escapeHtml(imgSrc)}" class="ingredient-img" loading="lazy">
+                    <div class="ingredient-name">${escapeHtml(ing.name)}</div>
+                    <div class="ingredient-qty">${escapeHtml(ing.qty || '-')}</div>
+                `;
+                item.querySelector('.ingredient-img').addEventListener('error', function () {
+                    this.onerror = null;
+                    this.src = FALLBACK_INGREDIENT_IMG;
+                    this.style.padding = '14px';
+                    this.style.background = '#f1f2f6';
+                    this.style.borderRadius = '10px';
+                });
+                ingGrid.appendChild(item);
+            });
+        }
+
+        // --- PROCESS STEPS RENDER (with optional per-step timers) ---
+        function renderProcessSteps(recipe) {
+            const processList = document.getElementById('process-list');
+            processList.innerHTML = '';
+
+            if (!Array.isArray(recipe.Process_Steps) || recipe.Process_Steps.length === 0) {
+                processList.innerHTML = '<p style="color:var(--text-light); text-align:center;">No process steps listed.</p>';
+                return;
+            }
+
+            recipe.Process_Steps.forEach((step, index) => {
+                const stepId = `step-timer-${index}`;
+                const hasImg = step.image ? 'block' : 'none';
+
+                const el = document.createElement('div');
+                el.className = 'process-step';
+                el.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-content">
+                        <div>${escapeHtml(step.step)}</div>
+                        ${step.image ? `<img src="${escapeHtml(step.image)}" class="step-img" style="display: ${hasImg};" loading="lazy">` : ''}
+                        <div class="step-timer" id="${stepId}">
+                            <input type="number" min="1" max="180" value="5" class="timer-input" aria-label="Timer minutes for step ${index + 1}">
+                            <span style="font-size:0.8rem; color: var(--text-light);">min</span>
+                            <button class="timer-btn" aria-label="Start timer for step ${index + 1}"><i class="fas fa-play"></i></button>
+                            <span class="timer-display" style="display:none;"></span>
+                        </div>
+                    </div>
+                `;
+                el.querySelector('.timer-btn').addEventListener('click', () => toggleStepTimer(stepId));
+                processList.appendChild(el);
+            });
+        }
+
+        // --- STEP TIMER LOGIC ---
+        function toggleStepTimer(stepId) {
+            const container = document.getElementById(stepId);
+            if (!container) return;
+            const input = container.querySelector('.timer-input');
+            const btn = container.querySelector('.timer-btn');
+            const display = container.querySelector('.timer-display');
+
+            if (activeTimers[stepId]) {
+                clearInterval(activeTimers[stepId]);
+                delete activeTimers[stepId];
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                input.style.display = 'inline-block';
+                display.style.display = 'none';
+                return;
+            }
+
+            let seconds = Math.max(1, parseInt(input.value, 10) || 5) * 60;
+            input.style.display = 'none';
+            display.style.display = 'inline-block';
+            btn.innerHTML = '<i class="fas fa-stop"></i>';
+
+            const update = () => {
+                const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+                const s = String(seconds % 60).padStart(2, '0');
+                display.textContent = `${m}:${s}`;
+            };
+            update();
+
+            activeTimers[stepId] = setInterval(() => {
+                seconds--;
+                update();
+                if (seconds <= 0) {
+                    clearInterval(activeTimers[stepId]);
+                    delete activeTimers[stepId];
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                    input.style.display = 'inline-block';
+                    display.style.display = 'none';
+                    showToast('\u23f0 Timer done!');
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }
+            }, 1000);
         }
 
         // --- TAB SWITCHER LOGIC ---
@@ -412,6 +824,26 @@
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
+
+        // --- INSTALL PROMPT (custom Add to Home Screen button) ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            document.getElementById('installBtn').style.display = 'inline-flex';
+        });
+
+        function handleInstallClick() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.finally(() => {
+                deferredInstallPrompt = null;
+                document.getElementById('installBtn').style.display = 'none';
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBtn').style.display = 'none';
+        });
 
         // --- INIT ---
         window.onload = fetchRecipes;
