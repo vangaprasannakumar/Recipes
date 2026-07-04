@@ -1,6 +1,6 @@
 // Bump this any time ASSETS_TO_CACHE or the fetch strategy changes below —
 // it's what triggers old caches to be cleaned up on the next activate.
-const CACHE_NAME = 'recipe-app-v0.2';
+const CACHE_NAME = 'recipe-app-v0.3';
 
 const ASSETS_TO_CACHE = [
   './',
