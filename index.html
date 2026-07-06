@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Recipes 👨‍🍳</title>
+    <title>My Recipes</title>
     
     <!-- PWA Setup & Favicons -->
     <link rel="manifest" href="manifest.json">
@@ -205,6 +205,12 @@
 
         /* --- STEP TIMER (COOKING MODE) --- */
         .step-timer { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #dfe4ea; flex-wrap: wrap; }
+        .test-sound-btn {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+            background: rgba(255,71,87,0.08); color: var(--primary); border: none;
+            border-radius: 50px; padding: 10px 16px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+        }
+        .test-sound-btn:active { transform: scale(0.97); }
         .timer-input { width: 54px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 5px 6px; font-size: 0.85rem; text-align: center; font-family: 'Poppins', sans-serif; }
         .timer-btn { background: var(--primary); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .timer-display { font-weight: 700; font-size: 1rem; color: var(--primary); font-variant-numeric: tabular-nums; }
@@ -330,6 +336,7 @@
                 </div>
 
                 <div id="process" class="tab-content">
+                    <button class="test-sound-btn" onclick="testAlarmSound()"><i class="fas fa-volume-high"></i> Test Alarm Sound</button>
                     <div id="process-list"></div>
                 </div>
             </div>
@@ -367,7 +374,7 @@
         // Paste your GitHub raw audio URL here once uploaded, e.g.
         // 'https://raw.githubusercontent.com/yourusername/reponame/main/alarm.mp3'
         // Leave blank to use the built-in synthesized beep instead.
-        const CUSTOM_ALARM_SOUND_URL = 'https://raw.githubusercontent.com/vangaprasannakumar/Recipes/main/casio_watch_ringtone.mp3';
+        const CUSTOM_ALARM_SOUND_URL = '';
 
         // Browsers block audio that isn't tied to a user gesture. We "unlock"
         // the AudioContext and the custom <audio> element the moment a timer
@@ -429,10 +436,18 @@
             if (!alarmAudioCtx) return;
             try {
                 const ctx = alarmAudioCtx;
+
+                // iOS/some Android browsers can silently re-suspend the context
+                // between when the timer started and when it finishes — resume
+                // defensively right before playing, every time.
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+
                 const now = ctx.currentTime;
-                const beepCount = 6;
-                const beepDuration = 0.09;
-                const gap = 0.08;
+                const beepCount = 8;
+                const beepDuration = 0.15;
+                const gap = 0.1;
 
                 for (let i = 0; i < beepCount; i++) {
                     const startTime = now + i * (beepDuration + gap);
@@ -443,7 +458,7 @@
                     osc.frequency.value = 2800; // bright, digital-watch-alarm pitch
 
                     gainNode.gain.setValueAtTime(0.0001, startTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.25, startTime + 0.005);
+                    gainNode.gain.exponentialRampToValueAtTime(0.9, startTime + 0.008);
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + beepDuration);
 
                     osc.connect(gainNode);
@@ -479,6 +494,17 @@
                     // Not supported in this context — toast/vibration/beep still cover it
                 }
             }
+        }
+
+        // Lets you check the alarm sound instantly with a direct tap, instead
+        // of waiting through a full countdown — also the best way to tell
+        // whether it's a code issue or a phone volume/silent-mode issue.
+        function testAlarmSound() {
+            ensureAudioUnlocked();
+            setTimeout(() => {
+                playAlarmSound();
+                showToast("Didn't hear it? Check media volume + silent/mute switch");
+            }, 60);
         }
 
         // --- INGREDIENT IMAGE MATCHING (expanded for Indian recipes) ---
